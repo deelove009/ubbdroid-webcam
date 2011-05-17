@@ -7,6 +7,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 
+import andriod.service.ConnectionService;
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
@@ -49,59 +50,31 @@ public class MainActivity extends Activity {
 				textview.setText("Connecting");
 				startService(new Intent(MainActivity.this,ConnectionService.class));
 				doBindService();
-			    new Thread (new Runnable(){
-			    	public void run(){
-			    		try {
-							open();
-							send("halo");
-						} catch (Exception e) {
-							Log.e(TAG, e.getMessage());
-						}
-			    	}
-			    }).start();
 			}
 		});
+		
+		 button = (Button) findViewById(R.id.button3);
+		 button.setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					connectionService.IsBoundable();
+				}
+			});
+		 
 		button = (Button) findViewById(R.id.button2);
 		button.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				textview.setText("Disconnecting");
-				try{
-				close();
-				}catch (Exception e) {
-					// TODO: handle exception
-				}
 			}
 		});
 		
 		
     }
 
-    public void send(String s) throws IOException{
-    	os.writeChars(s);
-    	os.flush();
-    }
-    
-    
-    public void open () throws IOException {
-    	SocketAddress socketAddress = new InetSocketAddress("192.168.1.103", 4567);              
-            s.connect(socketAddress);
-        is = new ObjectInputStream(s.getInputStream());
-        os = new ObjectOutputStream(s.getOutputStream());
-    }
-    
-    public void close () throws IOException {
-    	s.close();
-    }
-   // public void onStart(){
-    	//startService(new Intent(MainActivity.this,ConnectionService.class));
-        //doBindService();
-    //}
-    
     private ServiceConnection serviceConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
         	connectionService = ((ConnectionService.LocalBinder)service).getService();
-
         }
         public void onServiceDisconnected(ComponentName className) {
         	connectionService = null;
@@ -110,18 +83,20 @@ public class MainActivity extends Activity {
 	
     private void doBindService() {
         bindService(new Intent(MainActivity.this, ConnectionService.class), serviceConnection, Context.BIND_AUTO_CREATE);
+        Log.d(TAG,"Blinding to service...");
         isBound = true;
-        connectionService.IsBoundable();
+        //connectionService.IsBoundable();
     }
 
 
     private void doUnbindService() {
         if (isBound) {
-            // Detach our existing connection.
             unbindService(serviceConnection);
             isBound = false;
         }
     }
+    
+    
     public void onDistroy(){
     	doUnbindService();
     }

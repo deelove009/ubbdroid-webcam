@@ -1,9 +1,8 @@
-package andriod.mw;
+package andriod.service;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.PrintStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
@@ -23,6 +22,8 @@ public class ConnectionService extends Service {
     public ObjectOutputStream os;
     public ObjectInputStream is;
     @Override
+    
+    
     public IBinder onBind(Intent arg0) {
         return myBinder;
     }
@@ -43,7 +44,7 @@ public class ConnectionService extends Service {
     }
 
     public void IsBoundable(){
-        Toast.makeText(this,"I bind like butter", Toast.LENGTH_LONG).show();
+        Toast.makeText(this,"Trying..", Toast.LENGTH_LONG).show();
     }
 
     public void onStart(Intent intent, int startId){
@@ -62,6 +63,9 @@ public class ConnectionService extends Service {
 			try {
 				open();
 				send("helo csavo:)");
+				/*while(true){
+					
+				}*/
 			}
 			catch (Exception e) {
 				Log.d(TAG, e.getMessage());				
@@ -80,14 +84,14 @@ public class ConnectionService extends Service {
     	
     }
     
-    public void send(String s) throws IOException{
-    	os.writeChars(s);
+    public void send(Object s) throws IOException{
+    	os.writeObject(s);
     	os.flush();
     }
     
     
     public void open () throws IOException {
-    	SocketAddress socketAddress = new InetSocketAddress("192.168.1.103", 4567);              
+    	SocketAddress socketAddress = new InetSocketAddress("192.168.1.105", 4567);              
             s.connect(socketAddress);
         is = new ObjectInputStream(s.getInputStream());
         os = new ObjectOutputStream(s.getOutputStream());

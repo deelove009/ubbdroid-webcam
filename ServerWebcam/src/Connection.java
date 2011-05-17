@@ -15,8 +15,8 @@ public class Connection extends Thread {
 		this.server = server;
 		
 		try {
-			in = new ObjectInputStream(con.getInputStream());
 			out = new ObjectOutputStream(con.getOutputStream());
+			in = new ObjectInputStream(con.getInputStream());
 		} catch (Exception e) {
 			reportError("IO:"+e.getMessage());
 		}
@@ -31,8 +31,8 @@ public class Connection extends Thread {
 		out.flush();
 	}
 
-	public String read() throws IOException {
-		return in.readUTF();
+	public Object read() throws Exception {
+		return in.readObject();
 	}
 
 	public String getHostName() {
@@ -45,9 +45,8 @@ public class Connection extends Thread {
 		try {
 			server.addConnection(this);
 			while (true) {
-				String s = read();
-				System.out.println(s);
-				
+				String s = (String)read();
+				System.out.println(s);	
 			}
 
 		} catch (Exception e) {

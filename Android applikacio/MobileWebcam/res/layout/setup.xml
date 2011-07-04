@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_height="fill_parent" android:layout_width="fill_parent" android:id="@+id/linearLayout1" android:orientation="vertical">
+        <TextView android:text="Options" android:layout_height="wrap_content" android:layout_width="wrap_content" android:layout_gravity="center_horizontal" android:id="@+id/textView1"></TextView>
+        <TextView android:text="Server address" android:id="@+id/textView2" android:layout_width="wrap_content" android:layout_height="wrap_content"></TextView>
+        <EditText android:text="" android:layout_height="wrap_content" android:id="@+id/editText1" android:layout_width="match_parent"></EditText>
+        <TextView android:text="Port address" android:layout_height="wrap_content" android:id="@+id/textView3" android:layout_width="wrap_content"></TextView>
+        <EditText android:text="" android:layout_height="wrap_content" android:layout_width="match_parent" android:id="@+id/editText2"></EditText>
+        <TextView android:text="" android:id="@+id/textView5" android:layout_width="wrap_content" android:layout_height="48px"></TextView>
+        <Button android:id="@+id/button1" android:text="Apply" android:layout_height="wrap_content" android:layout_width="match_parent"></Button>
+        <TextView android:text="" android:id="@+id/textView6" android:layout_width="wrap_content" android:layout_height="wrap_content"></TextView>        
+        <Button android:id="@+id/button2" android:layout_height="wrap_content" android:text="Cancel" android:layout_gravity="top" android:layout_width="match_parent"></Button>
+    </LinearLayout>

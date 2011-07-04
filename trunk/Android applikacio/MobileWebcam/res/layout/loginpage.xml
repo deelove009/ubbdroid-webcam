@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_height="fill_parent" android:layout_width="fill_parent" android:id="@+id/linearLayout1" android:orientation="vertical">
+        <TextView android:text="Login" android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/textView2" android:layout_gravity="center_horizontal"></TextView>
+        <TextView android:text="User name" android:id="@+id/textView3" android:layout_width="wrap_content" android:layout_height="wrap_content"></TextView>
+        <EditText android:text="" android:layout_height="wrap_content" android:layout_width="match_parent" android:id="@+id/editText1"></EditText>
+        <TextView android:text="Password" android:id="@+id/textView4" android:layout_width="wrap_content" android:layout_height="wrap_content"></TextView>
+        <EditText android:text="" android:layout_height="wrap_content" android:layout_width="match_parent" android:id="@+id/editText2" android:password="true"></EditText>
+        <CheckBox android:text="Remember me" android:id="@+id/checkBox1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center_horizontal"></CheckBox>
+        <Button android:id="@+id/button1" android:layout_height="wrap_content" android:layout_width="match_parent" android:text="Login"></Button>
+        <TextView android:text="" android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/textView1"></TextView>
+        <Button android:id="@+id/button2" android:layout_height="wrap_content" android:layout_width="match_parent" android:text="Options"></Button>        
+    </LinearLayout>

@@ -1,5 +1,6 @@
 package com.android.mw;
 
+// TODO: Ezt ki kell javitani, mert igy teljesen folosleges!
 public class testConnectionLayer {
 	
 	private String address = "192.168.0.1";

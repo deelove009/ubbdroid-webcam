@@ -3,25 +3,17 @@ package com.android.mw;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-import org.w3c.dom.Text;
-
-import com.android.mw.R;
-
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
-import android.content.res.Configuration;
-import android.hardware.Camera;
-import android.hardware.Camera.PreviewCallback;
-import android.graphics.Bitmap;
-import android.graphics.Bitmap.CompressFormat;
-import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
+import android.hardware.Camera;
+import android.hardware.Camera.PreviewCallback;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -48,7 +40,10 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
 		super.onCreate(savedInstanceState);
 		
 		cl = new ConnectionLayer(this);
-		Bundle extras = getIntent().getExtras();
+		Intent intent = getIntent();
+		cl.setServerAddress(intent.getStringExtra(C.KEY_SERVER_ADDR));
+		cl.setPort(intent.getIntExtra(C.KEY_SERVER_PORT, 0));
+
 		getWindow().setFormat(PixelFormat.TRANSLUCENT);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,

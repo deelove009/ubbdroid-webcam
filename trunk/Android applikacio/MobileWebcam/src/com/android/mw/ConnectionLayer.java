@@ -4,9 +4,7 @@ import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.SocketAddress;
 
 import android.app.Activity;
 import android.os.ParcelFileDescriptor;
@@ -17,8 +15,8 @@ public class ConnectionLayer {
 	private Socket s;
     private ObjectOutputStream os;
     private ObjectInputStream is;
-    private String serverAddress = "192.168.1.100";
-    private int port = 4567;
+    private String serverAddress;
+    private int port;
     
     /** Declares the s socket. */
     public ConnectionLayer(Activity activity){

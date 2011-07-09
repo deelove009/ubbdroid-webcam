@@ -1,31 +1,19 @@
 package com.android.mw;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-
-import com.android.mw.R;
-//import com.android.service.ConnectionService;
 import android.app.Activity;
 import android.app.AlertDialog;
-
-import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
-import android.widget.TextView;
 
 public class LoginActivity extends Activity {
 	private static final String TAG = LoginActivity.class.getSimpleName();
@@ -36,44 +24,80 @@ public class LoginActivity extends Activity {
 	private LoginActivity self;
 	private Activity activity;
 
+	// Default values. Will be overwritten if there are previous values in the
+	// shared preferences.
+	private String serverAddress = "192.168.1.100";
+	private int port = 4567;
+
 	private ConnectionLayer connectionLayer;
+	private SharedPreferences settings;
 
 	/** Called when the activity is first created. */
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
-		this.setRequestedOrientation(
-				ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-		
+
+		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
 		setContentView(R.layout.loginpage);
 		
+		user = (EditText) findViewById(R.id.editText1);
+		pass = (EditText) findViewById(R.id.editText2);
+		
+		// Retrieve the saved values if any
+		settings = getSharedPreferences(C.PREFS, MODE_PRIVATE);
+		serverAddress = settings.getString(C.KEY_SERVER_ADDR, serverAddress);
+		port = settings.getInt(C.KEY_SERVER_PORT, port);
+		user.setText(settings.getString(C.KEY_USER, ""));
+		pass.setText(settings.getString(C.KEY_PASS, ""));
+
 		connectionLayer = new ConnectionLayer(this);
 
 		self = this;
-		//checkbox = (CheckBox) findViewById(R.id.checkBox1);
-		user = (EditText) findViewById(R.id.editText1);
-		pass = (EditText) findViewById(R.id.editText2);
+		
+		checkbox = (CheckBox) findViewById(R.id.checkBox1);
+		// Set the value of the checkbox
+		checkbox.setChecked(settings.getBoolean(C.KEY_SAVE, false));
+		checkbox.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				SharedPreferences.Editor editor = settings.edit();
+				editor.putBoolean(C.KEY_SAVE, isChecked);
+				if (!isChecked) {
+					editor.remove(C.KEY_USER);
+					editor.remove(C.KEY_PASS);
+				}
+				editor.commit();
+			}
+		});
 
 		button = (Button) findViewById(R.id.button1);
 		button.setOnClickListener(new OnClickListener() {
 			@Override
 			/** Logging in and error handling. */
 			public void onClick(View v) {
-				
+
 				try {
+					// Saving user data if specified by the user
+					String user1 = user.getText().toString();
+					String passwd = pass.getText().toString();
+					if (checkbox.isChecked()) {
+						SharedPreferences.Editor editor = settings.edit();
+						editor.putString(C.KEY_USER, user1);
+						editor.putString(C.KEY_PASS, passwd);
+						editor.commit();
+					}
 					
-				 connectionLayer.open();
+					connectionLayer.open();
 					connectionLayer.send(new Integer(1));
-					String user1=user.getText().toString();
 					connectionLayer.send(user1);
-					//connectionLayer.send(user.getText().toString());
-					connectionLayer.send(pass.getText().toString());					
+					// connectionLayer.send(user.getText().toString());
+					connectionLayer.send(passwd);
 					if (((Integer) connectionLayer.read()).equals(2)) {
 						Intent intent = new Intent(LoginActivity.this,
 								MainActivity.class);
 						intent = intent.putExtra("user", user1);
 						startActivity(intent);
-						//startActivity(intent.putExtra("user", user1));
+						// startActivity(intent.putExtra("user", user1));
 					} else {
 						AlertDialog alertDialog;
 						alertDialog = new AlertDialog.Builder(self).create();
@@ -82,19 +106,19 @@ public class LoginActivity extends Activity {
 						alertDialog.show();
 					}
 					connectionLayer.close();
-					
-					
+
 				} catch (Exception e) {
-					Log.d(TAG, "connection error");
+					Log.d(TAG, "connection error: " + e.toString());
 					AlertDialog alertDialog;
 					alertDialog = new AlertDialog.Builder(self).create();
 					alertDialog.setTitle("Conection");
 					alertDialog.setMessage("Server is unreachable!");
 					alertDialog.show();
 				}
-				/*Intent intent = new Intent(LoginActivity.this,
-						MainActivity.class);
-				startActivity(intent);*/
+				/*
+				 * Intent intent = new Intent(LoginActivity.this,
+				 * MainActivity.class); startActivity(intent);
+				 */
 			}
 		});
 
@@ -105,12 +129,46 @@ public class LoginActivity extends Activity {
 			public void onClick(View v) {
 				Intent intent = new Intent(LoginActivity.this,
 						SetupActivity.class);
-				startActivity(intent);
+
+				// Send the values for the EditText fields
+				intent.putExtra(C.KEY_SERVER_ADDR, serverAddress);
+				intent.putExtra(C.KEY_SERVER_PORT, port);
+
+				startActivityForResult(intent, C.REQUEST_SETUP);
 			}
 		});
 	}
-	/** The Distroy method */
-	public void onDistroy() {
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		switch (requestCode) {
+		case C.REQUEST_SETUP:
+			if (resultCode == RESULT_OK) {
+				// The Settings activity finished, update the values for the
+				// server
+				// address and port
+				serverAddress = data.getStringExtra(C.KEY_SERVER_ADDR);
+				port = data.getIntExtra(C.KEY_SERVER_PORT, port);
+
+				connectionLayer.setServerAddress(serverAddress);
+				connectionLayer.setPort(port);
+				
+				SharedPreferences.Editor editor = settings.edit();
+				editor.putString(C.KEY_SERVER_ADDR, serverAddress);
+				editor.putInt(C.KEY_SERVER_PORT, port);
+				editor.commit();
+			}
+			break;
+
+		default:
+			super.onActivityResult(requestCode, resultCode, data);
+		}
+	}
+
+	/** The Destroy method */
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
 		try {
 			connectionLayer.open();
 			connectionLayer.send(new Integer(6));
@@ -118,5 +176,13 @@ public class LoginActivity extends Activity {
 		} catch (Exception e) {
 			Log.d(TAG, e.getMessage());
 		}
+	}
+
+	public String getServerAddress() {
+		return serverAddress;
+	}
+
+	public int getPort() {
+		return port;
 	}
 }

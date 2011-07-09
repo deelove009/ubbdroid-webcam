@@ -39,10 +39,10 @@ public class LoginActivity extends Activity {
 		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
 		setContentView(R.layout.loginpage);
-		
+
 		user = (EditText) findViewById(R.id.editText1);
 		pass = (EditText) findViewById(R.id.editText2);
-		
+
 		// Retrieve the saved values if any
 		settings = getSharedPreferences(C.PREFS, MODE_PRIVATE);
 		serverAddress = settings.getString(C.KEY_SERVER_ADDR, serverAddress);
@@ -53,13 +53,14 @@ public class LoginActivity extends Activity {
 		connectionLayer = new ConnectionLayer(this);
 
 		self = this;
-		
+
 		checkbox = (CheckBox) findViewById(R.id.checkBox1);
 		// Set the value of the checkbox
 		checkbox.setChecked(settings.getBoolean(C.KEY_SAVE, false));
 		checkbox.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 			@Override
-			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+			public void onCheckedChanged(CompoundButton buttonView,
+					boolean isChecked) {
 				SharedPreferences.Editor editor = settings.edit();
 				editor.putBoolean(C.KEY_SAVE, isChecked);
 				if (!isChecked) {
@@ -86,7 +87,7 @@ public class LoginActivity extends Activity {
 						editor.putString(C.KEY_PASS, passwd);
 						editor.commit();
 					}
-					
+
 					connectionLayer.open();
 					connectionLayer.send(new Integer(1));
 					connectionLayer.send(user1);
@@ -95,7 +96,9 @@ public class LoginActivity extends Activity {
 					if (((Integer) connectionLayer.read()).equals(2)) {
 						Intent intent = new Intent(LoginActivity.this,
 								MainActivity.class);
-						intent = intent.putExtra("user", user1);
+						intent.putExtra("user", user1)
+								.putExtra(C.KEY_SERVER_ADDR, serverAddress)
+								.putExtra(C.KEY_SERVER_PORT, port);
 						startActivity(intent);
 						// startActivity(intent.putExtra("user", user1));
 					} else {
@@ -152,7 +155,7 @@ public class LoginActivity extends Activity {
 
 				connectionLayer.setServerAddress(serverAddress);
 				connectionLayer.setPort(port);
-				
+
 				SharedPreferences.Editor editor = settings.edit();
 				editor.putString(C.KEY_SERVER_ADDR, serverAddress);
 				editor.putInt(C.KEY_SERVER_PORT, port);

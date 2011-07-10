@@ -141,7 +141,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
 		streaming = !streaming;		
 	}
 
-	public void onDistroy() {
+	public void onDestroy() {
+		super.onDestroy();
 		try {
 			streaming=false;
 			cl.close();

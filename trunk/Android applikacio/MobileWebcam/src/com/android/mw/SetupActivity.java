@@ -8,12 +8,10 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 
 public class SetupActivity extends Activity {
-	private static final String TAG = SetupActivity.class.getSimpleName();
+//	private static final String TAG = SetupActivity.class.getSimpleName();
 	private Button button;
-	private TextView textview;
 	private EditText sadress;
 	private EditText port;
 

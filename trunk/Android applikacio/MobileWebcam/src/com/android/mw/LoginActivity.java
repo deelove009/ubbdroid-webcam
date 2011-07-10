@@ -2,6 +2,8 @@ package com.android.mw;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
@@ -17,12 +19,13 @@ import android.widget.EditText;
 
 public class LoginActivity extends Activity {
 	private static final String TAG = LoginActivity.class.getSimpleName();
+	public static final int DIALOG_LOADING = 0;
+	
 	private Button button;
 	private CheckBox checkbox;
 	private EditText user;
 	private EditText pass;
 	private LoginActivity self;
-	private Activity activity;
 
 	// Default values. Will be overwritten if there are previous values in the
 	// shared preferences.
@@ -51,6 +54,8 @@ public class LoginActivity extends Activity {
 		pass.setText(settings.getString(C.KEY_PASS, ""));
 
 		connectionLayer = new ConnectionLayer(this);
+		connectionLayer.setServerAddress(serverAddress);
+		connectionLayer.setPort(port);
 
 		self = this;
 
@@ -76,52 +81,17 @@ public class LoginActivity extends Activity {
 			@Override
 			/** Logging in and error handling. */
 			public void onClick(View v) {
-
-				try {
-					// Saving user data if specified by the user
-					String user1 = user.getText().toString();
-					String passwd = pass.getText().toString();
-					if (checkbox.isChecked()) {
-						SharedPreferences.Editor editor = settings.edit();
-						editor.putString(C.KEY_USER, user1);
-						editor.putString(C.KEY_PASS, passwd);
-						editor.commit();
-					}
-
-					connectionLayer.open();
-					connectionLayer.send(new Integer(1));
-					connectionLayer.send(user1);
-					// connectionLayer.send(user.getText().toString());
-					connectionLayer.send(passwd);
-					if (((Integer) connectionLayer.read()).equals(2)) {
-						Intent intent = new Intent(LoginActivity.this,
-								MainActivity.class);
-						intent.putExtra("user", user1)
-								.putExtra(C.KEY_SERVER_ADDR, serverAddress)
-								.putExtra(C.KEY_SERVER_PORT, port);
-						startActivity(intent);
-						// startActivity(intent.putExtra("user", user1));
-					} else {
-						AlertDialog alertDialog;
-						alertDialog = new AlertDialog.Builder(self).create();
-						alertDialog.setTitle("Authentification failed");
-						alertDialog.setMessage("Bad username or password!");
-						alertDialog.show();
-					}
-					connectionLayer.close();
-
-				} catch (Exception e) {
-					Log.d(TAG, "connection error: " + e.toString());
-					AlertDialog alertDialog;
-					alertDialog = new AlertDialog.Builder(self).create();
-					alertDialog.setTitle("Conection");
-					alertDialog.setMessage("Server is unreachable!");
-					alertDialog.show();
+				showDialog(DIALOG_LOADING);
+				// Saving user data if specified by the user
+				String user1 = user.getText().toString();
+				String passwd = pass.getText().toString();
+				if (checkbox.isChecked()) {
+					SharedPreferences.Editor editor = settings.edit();
+					editor.putString(C.KEY_USER, user1);
+					editor.putString(C.KEY_PASS, passwd);
+					editor.commit();
 				}
-				/*
-				 * Intent intent = new Intent(LoginActivity.this,
-				 * MainActivity.class); startActivity(intent);
-				 */
+				new AuthenticatorTask(connectionLayer, user1, passwd, LoginActivity.this).execute();
 			}
 		});
 
@@ -181,11 +151,44 @@ public class LoginActivity extends Activity {
 		}
 	}
 
-	public String getServerAddress() {
-		return serverAddress;
+	@Override
+	protected Dialog onCreateDialog(int id) {
+		switch (id) {
+		case DIALOG_LOADING:
+			ProgressDialog dialog = new ProgressDialog(this);
+			dialog.setMessage("Connecting. Please wait...");
+			dialog.setIndeterminate(true);
+			dialog.setCancelable(false);
+			
+			return dialog;
+		}
+		return null;
 	}
-
-	public int getPort() {
-		return port;
+	
+	public void onAuthOk() {
+		String user1 = user.getText().toString();
+		Intent intent = new Intent(LoginActivity.this,
+				MainActivity.class);
+		intent.putExtra("user", user1)
+				.putExtra(C.KEY_SERVER_ADDR, serverAddress)
+				.putExtra(C.KEY_SERVER_PORT, port);
+		startActivity(intent);
+	}
+	
+	public void onAuthBad() {
+		AlertDialog alertDialog;
+		alertDialog = new AlertDialog.Builder(self).create();
+		alertDialog.setTitle("Authentification failed");
+		alertDialog.setMessage("Bad username or password!");
+		alertDialog.show();
+	}
+	
+	public void onConnectionError(Exception e) {
+		Log.d(TAG, "connection error: " + e.toString());
+		AlertDialog alertDialog;
+		alertDialog = new AlertDialog.Builder(self).create();
+		alertDialog.setTitle("Conection");
+		alertDialog.setMessage("Server is unreachable!");
+		alertDialog.show();
 	}
 }

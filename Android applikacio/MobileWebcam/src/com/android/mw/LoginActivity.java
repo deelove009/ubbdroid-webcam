@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
@@ -11,6 +12,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -20,7 +22,7 @@ import android.widget.EditText;
 public class LoginActivity extends Activity {
 	private static final String TAG = LoginActivity.class.getSimpleName();
 	public static final int DIALOG_LOADING = 0;
-	
+
 	private Button button;
 	private CheckBox checkbox;
 	private EditText user;
@@ -81,6 +83,10 @@ public class LoginActivity extends Activity {
 			@Override
 			/** Logging in and error handling. */
 			public void onClick(View v) {
+				// Hide keyboard
+				InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+				imm.hideSoftInputFromWindow(user.getWindowToken(), 0);
+
 				showDialog(DIALOG_LOADING);
 				// Saving user data if specified by the user
 				String user1 = user.getText().toString();
@@ -91,7 +97,8 @@ public class LoginActivity extends Activity {
 					editor.putString(C.KEY_PASS, passwd);
 					editor.commit();
 				}
-				new AuthenticatorTask(connectionLayer, user1, passwd, LoginActivity.this).execute();
+				new AuthenticatorTask(connectionLayer, user1, passwd,
+						LoginActivity.this).execute();
 			}
 		});
 
@@ -159,22 +166,21 @@ public class LoginActivity extends Activity {
 			dialog.setMessage("Connecting. Please wait...");
 			dialog.setIndeterminate(true);
 			dialog.setCancelable(false);
-			
+
 			return dialog;
 		}
 		return null;
 	}
-	
+
 	public void onAuthOk() {
 		String user1 = user.getText().toString();
-		Intent intent = new Intent(LoginActivity.this,
-				MainActivity.class);
+		Intent intent = new Intent(LoginActivity.this, MainActivity.class);
 		intent.putExtra("user", user1)
 				.putExtra(C.KEY_SERVER_ADDR, serverAddress)
 				.putExtra(C.KEY_SERVER_PORT, port);
 		startActivity(intent);
 	}
-	
+
 	public void onAuthBad() {
 		AlertDialog alertDialog;
 		alertDialog = new AlertDialog.Builder(self).create();
@@ -182,7 +188,7 @@ public class LoginActivity extends Activity {
 		alertDialog.setMessage("Bad username or password!");
 		alertDialog.show();
 	}
-	
+
 	public void onConnectionError(Exception e) {
 		Log.d(TAG, "connection error: " + e.toString());
 		AlertDialog alertDialog;

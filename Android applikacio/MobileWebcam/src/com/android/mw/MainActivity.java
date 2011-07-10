@@ -1,7 +1,6 @@
 package com.android.mw;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -32,7 +31,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
 	private SurfaceView mSurfaceView;
 	private SurfaceHolder mSurfaceHolder;
 	private ConnectionLayer cl;
-	private boolean ps = false;
 	private boolean streaming = false;
 
 	@Override
@@ -57,32 +55,39 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
 		mSurfaceHolder = mSurfaceView.getHolder();
 		mSurfaceHolder.addCallback(this);
 		mSurfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+	}
 
+	@Override
+	protected void onResume() {
+		super.onResume();
 		mCamera = Camera.open();
 	}
 
 	@Override
+	protected void onPause() {
+		super.onPause();
+		if (mCamera != null) {
+			mCamera.release();
+			mCamera = null;
+		}
+	}
+
+	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
-		if (ps) {
-			mCamera.stopPreview();
-		}
-		try {
-			mCamera.setPreviewDisplay(holder);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		mCamera.startPreview();
-		ps = true;
 	}
 
 	@Override
 	public void surfaceCreated(SurfaceHolder arg0) {
 		try {
+			if (mCamera == null) {
+				return;
+			}
 			cl.open();
 			cl.send(new Integer(4));
 			String user1 = getIntent().getExtras().getString("user");
 			cl.send(user1);
+			mCamera.setPreviewDisplay(arg0);
 			mCamera.setPreviewCallback(new PreviewCallback() {
 				@Override
 				public void onPreviewFrame(byte[] data, Camera camera) {
@@ -122,9 +127,16 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
 
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
-		streaming = false;
-		ps = false;
+		if (mCamera != null) {
+			mCamera.stopPreview();
+		}
 		Log.d(TAG, "Closeing...");
+	}
+	
+	@Override
+	public void onBackPressed() {
+		streaming = false;
+		super.onBackPressed();
 	}
 
 	@Override
@@ -133,22 +145,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,
 		streaming = !streaming;
 	}
 
-	@Override
-	public void onBackPressed() {
-		streaming = false;
-		ps = false;
-		super.onBackPressed();
-	}
-
 	public void onDestroy() {
 		super.onDestroy();
-		if (mCamera != null) {
-			mCamera.stopPreview();
-			mCamera.release();
-		}
 		try {
-			streaming = false;
-			ps = false;
 			cl.close();
 		} catch (Exception e) {
 			Log.d(TAG, e.getMessage());
